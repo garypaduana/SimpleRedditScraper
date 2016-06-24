@@ -87,7 +87,7 @@ public class RedditScraperBot {
 			JSONObject output = new JSONObject();
 			output.put("comments", comments);
 			
-			File outFile = new File("/Users/garypaduana/Documents/GitHub/helen/selanimate/src/main/resources/comments.json");
+			File outFile = new File("./comments.json");
 			
 			try(BufferedWriter bw = new BufferedWriter(new FileWriter(outFile))){
 			    bw.write(output.toString(4));
