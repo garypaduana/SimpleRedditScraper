@@ -17,14 +17,21 @@
 
 package com.reddit;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.reddit.domain.Comment;
 import com.reddit.domain.CommentThread;
 import com.reddit.util.ApiUtil;
 
@@ -38,7 +45,7 @@ public class RedditScraperBot {
 
 		ApiUtil apiUtil = new ApiUtil(MINIMUM_TIME_BETWEEN_REQUESTS_IN_MS);
 		
-		List<String> subreddits = Arrays.asList("pics", "AskReddit", "funny");
+		List<String> subreddits = Arrays.asList("AskReddit");
 		
 		for(String subreddit : subreddits){
 			System.out.println("########################################");
@@ -46,8 +53,8 @@ public class RedditScraperBot {
 			System.out.println("########################################");
 			
 			// Return 50 threads from the front page of this subreddit
-			JSONObject redditObject = new JSONObject(apiUtil.getPage("http://www.reddit.com/r/" + subreddit + ".json?limit=50"));
-			
+			JSONObject redditObject = new JSONObject(apiUtil.getPage("http://www.reddit.com/r/" + subreddit + ".json?limit=10"));
+			List<String> comments = new ArrayList<String>();
 			JSONArray children = redditObject.getJSONObject("data").getJSONArray("children");
 			for(int i = 0; i < children.length(); i++){
 				try{
@@ -63,9 +70,11 @@ public class RedditScraperBot {
 					
 					// Do something with the comment thread object
 					// Displaying meta data for lack of a better objective 
-					System.out.println("Author: " + commentThread.getAuthor() + ", Title: " + commentThread.getTitle() +
-						", Upvotes: " + commentThread.getUpvotes() + ", Downvotes: " + commentThread.getDownvotes() + 
-						", comments retrieved: " + commentThread.getComments().size());
+//					System.out.println("Author: " + commentThread.getAuthor() + ", Title: " + commentThread.getTitle() +
+//						", Upvotes: " + commentThread.getUpvotes() + ", Downvotes: " + commentThread.getDownvotes() + 
+//						", comments retrieved: " + commentThread.getComments().size());
+					
+					comments.addAll(commentThread.getComments().stream().map((c) -> c.getContents()).collect(Collectors.toList()));
 				}
 				catch(IOException ioException){
 					ioException.printStackTrace();
@@ -74,6 +83,18 @@ public class RedditScraperBot {
 					jsonException.printStackTrace();
 				}
 			}
+			
+			JSONObject output = new JSONObject();
+			output.put("comments", comments);
+			
+			File outFile = new File("/Users/garypaduana/Documents/GitHub/helen/selanimate/src/main/resources/comments.json");
+			
+			try(BufferedWriter bw = new BufferedWriter(new FileWriter(outFile))){
+			    bw.write(output.toString(4));
+			}
+			
+			System.out.println(comments.size());
+			
 		}
 		apiUtil.getTimer().cancel();
 	}

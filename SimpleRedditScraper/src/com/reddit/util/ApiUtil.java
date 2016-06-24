@@ -133,8 +133,11 @@ public class ApiUtil {
 		BufferedReader br = null;
 		StringBuffer sb = new StringBuffer();
 		
+		HttpURLConnection connection;
 		try{
-		    is = url.openStream();
+		    connection = (HttpURLConnection) url.openConnection();
+		    connection.setRequestProperty("User-Agent", "just an anonymous comment reader");
+		    is = connection.getInputStream();
 		    br = new BufferedReader(new InputStreamReader(is));
 		    String line = null;
 		    while ((line = br.readLine()) != null){
